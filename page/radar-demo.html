@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Celator — Demo aislado v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --red: #e70000;
+        --cyan: #22d3ee;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background: #08080b;
+        background-image: radial-gradient(circle at 50% 30%, rgba(231,0,0,0.08), transparent 60%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        font-family: 'JetBrains Mono', monospace;
+        color: #e4e4e6;
+        padding: 40px 20px;
+    }
+
+    .label {
+        font-size: 11px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: rgba(228,228,230,0.5);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .label .dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 8px var(--cyan);
+        animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: .5; transform: scale(.85);} 50% { opacity: 1; transform: scale(1.1);} }
+
+    .radar-stage {
+        position: relative;
+        width: min(80vw, 560px);
+        aspect-ratio: 1 / 1;
+    }
+
+    svg#radar { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+    .ring { fill: none; stroke: rgba(34,211,238,0.16); stroke-width: 0.4; }
+    .ring.inner { stroke: rgba(34,211,238,0.28); }
+    .crosshair { stroke: rgba(255,255,255,0.06); stroke-width: 0.3; }
+
+    /* Núcleo: titila siempre, sin importar lo que pase con las amenazas */
+    .core {
+        fill: var(--cyan);
+        filter: drop-shadow(0 0 5px var(--cyan)) drop-shadow(0 0 10px rgba(34,211,238,0.6));
+        animation: core-blink 2.2s ease-in-out infinite;
+        transform-origin: 50px 50px;
+    }
+    @keyframes core-blink {
+        0%, 100% { opacity: 0.55; r: 1.9px; }
+        50%      { opacity: 1;    r: 2.4px; }
+    }
+
+    .sweep {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        /* Cola DETRÁS del filo, no adelante: el brillo vive justo antes del
+           cierre del círculo (100%) y el resto queda transparente, así al
+           rotar, la estela queda a la zaga del punto más brillante. */
+        background: conic-gradient(from 0deg, transparent 0%, transparent 74%, rgba(34,211,238,0.45) 100%);
+        mix-blend-mode: screen;
+        will-change: transform;
+    }
+
+    /* --- Puntos ambientales: textura de fondo, no interactúan con el barrido --- */
+    .ambient-dot {
+        fill: rgba(228, 228, 230, 0.35);
+        animation: ambient-flicker linear infinite;
+    }
+    @keyframes ambient-flicker {
+        0%, 100% { opacity: 0.15; }
+        50%      { opacity: 0.55; }
+    }
+
+    /* --- Amenazas reales: rojo -> cian al ser encontradas, cada una con su propio ciclo de vida --- */
+    .threat-line {
+        stroke: var(--red);
+        stroke-width: 0.4;
+        opacity: 0.75;
+        transition: stroke 0.35s ease, opacity 0.5s ease;
+        vector-effect: non-scaling-stroke;
+    }
+    .threat-line.found { stroke: var(--cyan); opacity: 0.9; }
+    .threat-line.fading { opacity: 0; }
+    .threat-line.entering { opacity: 0; }
+
+    .threat-dot {
+        fill: var(--red);
+        opacity: 1;
+        transition: fill 0.35s ease, r 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+    }
+    .threat-dot.found { fill: var(--cyan); }
+    .threat-dot.fading { opacity: 0; }
+    .threat-dot.entering { opacity: 0; }
+
+    .threat-dot-glow {
+        fill: none;
+        opacity: 1;
+        transition: stroke 0.35s ease, r 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+    }
+    .threat-dot-glow.pending { stroke: var(--red); filter: drop-shadow(0 0 3px var(--red)); }
+    .threat-dot-glow.found { stroke: var(--cyan); filter: drop-shadow(0 0 5px var(--cyan)); }
+    .threat-dot-glow.fading { opacity: 0; }
+    .threat-dot-glow.entering { opacity: 0; }
+
+    .stats {
+        display: flex;
+        gap: 32px;
+        text-align: center;
+    }
+    .stats .num { font-size: 20px; font-weight: 700; color: #fff; }
+    .stats .num.cyan { color: var(--cyan); text-shadow: 0 0 14px rgba(34,211,238,0.5); }
+    .stats .cap { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(228,228,230,0.5); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+    <div class="label"><span class="dot"></span> Radar Predictivo — Demo v2</div>
+
+    <div class="radar-stage">
+        <svg id="radar" viewBox="0 0 100 100">
+            <circle class="ring" cx="50" cy="50" r="48"></circle>
+            <circle class="ring" cx="50" cy="50" r="36"></circle>
+            <circle class="ring" cx="50" cy="50" r="24"></circle>
+            <circle class="ring inner" cx="50" cy="50" r="12"></circle>
+            <line class="crosshair" x1="50" y1="2" x2="50" y2="98"></line>
+            <line class="crosshair" x1="2" y1="50" x2="98" y2="50"></line>
+            <g id="ambientGroup"></g>
+            <g id="linesGroup"></g>
+            <g id="dotsGroup"></g>
+            <circle class="core" cx="50" cy="50" r="2.2"></circle>
+        </svg>
+        <div class="sweep" id="sweep"></div>
+    </div>
+
+    <div class="stats">
+        <div>
+            <div class="num cyan" id="statFound">0</div>
+            <div class="cap">Neutralizadas activas</div>
+        </div>
+        <div>
+            <div class="num" id="statLap">1</div>
+            <div class="cap">Vuelta de escaneo</div>
+        </div>
+    </div>
+
+<script>
+(function () {
+    const ROTATION_MS = 4000;              // duración de una vuelta completa del barrido
+    const LIFETIME_MS = ROTATION_MS / 2;    // "tiempo predeterminado": medio giro
+    const REPLACEMENT_DELAY_MS = LIFETIME_MS / 2; // mitad del tiempo predeterminado
+    const FADE_MS = 500;                    // duración visual del desvanecido
+
+    const MIN_POINTS = 10;                   // población objetivo de amenazas activas
+    const MIN_RADIUS = 16;                  // % del radio, desde el centro
+    const MAX_RADIUS = 44;
+    const MIN_SIZE = 0.9;                   // radio base del punto (varía el tamaño)
+    const MAX_SIZE = 2.5;
+
+    const AMBIENT_COUNT = 55;               // punticos de fondo simulando datos/archivos
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const sweepEl = document.getElementById('sweep');
+    const linesGroup = document.getElementById('linesGroup');
+    const dotsGroup = document.getElementById('dotsGroup');
+    const ambientGroup = document.getElementById('ambientGroup');
+    const statFoundEl = document.getElementById('statFound');
+    const statLapEl = document.getElementById('statLap');
+
+    const startTime = performance.now();
+    let points = [];
+    let lastLapShown = 1;
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    // Convención "de reloj": 0deg = arriba (12), aumenta en sentido horario —
+    // igual que el conic-gradient del barrido y su transform: rotate().
+    function polarToXY(angleDeg, radiusPct) {
+        const rad = (angleDeg * Math.PI) / 180;
+        const dx = radiusPct * Math.sin(rad);
+        const dy = -radiusPct * Math.cos(rad);
+        return { x: 50 + dx, y: 50 + dy };
+    }
+
+    function totalAngleAt(now) {
+        return ((now - startTime) / ROTATION_MS) * 360;
+    }
+
+    // --- Puntos ambientales (decorativos, fijos, no interactúan con el barrido) ---
+    function spawnAmbientDots() {
+        for (let i = 0; i < AMBIENT_COUNT; i++) {
+            const angle = rand(0, 360);
+            const radius = Math.sqrt(rand(0, 1)) * 47; // distribución pareja en el disco
+            const pos = polarToXY(angle, radius);
+            const r = rand(0.18, 0.5);
+
+            const dot = document.createElementNS(svgNS, 'circle');
+            dot.setAttribute('class', 'ambient-dot');
+            dot.setAttribute('cx', pos.x.toFixed(2));
+            dot.setAttribute('cy', pos.y.toFixed(2));
+            dot.setAttribute('r', r.toFixed(2));
+            dot.style.animationDuration = rand(2.5, 6).toFixed(2) + 's';
+            dot.style.animationDelay = '-' + rand(0, 6).toFixed(2) + 's';
+            ambientGroup.appendChild(dot);
+        }
+    }
+
+    // --- Ciclo de vida de una amenaza real ---
+    function spawnThreat() {
+        const now = performance.now();
+        const angle = rand(0, 360);
+        const radius = rand(MIN_RADIUS, MAX_RADIUS);
+        const baseR = rand(MIN_SIZE, MAX_SIZE);
+        const pos = polarToXY(angle, radius);
+
+        const spawnTotalAngle = totalAngleAt(now);
+        let targetAngle = Math.floor(spawnTotalAngle / 360) * 360 + angle;
+        if (targetAngle < spawnTotalAngle) targetAngle += 360;
+
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('class', 'threat-line entering');
+        line.setAttribute('x1', '50');
+        line.setAttribute('y1', '50');
+        line.setAttribute('x2', pos.x.toFixed(2));
+        line.setAttribute('y2', pos.y.toFixed(2));
+        linesGroup.appendChild(line);
+
+        const glow = document.createElementNS(svgNS, 'circle');
+        glow.setAttribute('class', 'threat-dot-glow pending entering');
+        glow.setAttribute('cx', pos.x.toFixed(2));
+        glow.setAttribute('cy', pos.y.toFixed(2));
+        glow.setAttribute('r', (baseR + 1).toFixed(2));
+        glow.setAttribute('stroke-width', '0.5');
+        dotsGroup.appendChild(glow);
+
+        const dot = document.createElementNS(svgNS, 'circle');
+        dot.setAttribute('class', 'threat-dot entering');
+        dot.setAttribute('cx', pos.x.toFixed(2));
+        dot.setAttribute('cy', pos.y.toFixed(2));
+        dot.setAttribute('r', baseR.toFixed(2));
+        dotsGroup.appendChild(dot);
+
+        // Doble rAF para asegurar que el navegador registre el estado inicial
+        // (opacity:0) antes de quitar la clase — si no, no dispara la transición.
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                line.classList.remove('entering');
+                glow.classList.remove('entering');
+                dot.classList.remove('entering');
+            });
+        });
+
+        points.push({
+            angle, baseR, targetAngle,
+            state: 'pending',       // pending -> found -> fading -> (removed)
+            spawnedAt: now,
+            foundAt: null,
+            fadeStartedAt: null,
+            line, dot, glow
+        });
+    }
+
+    function markFound(p) {
+        p.state = 'found';
+        p.foundAt = performance.now();
+        p.line.classList.add('found');
+        p.dot.classList.add('found');
+        p.glow.classList.remove('pending');
+        p.glow.classList.add('found');
+
+        // Pop de tamaño: salta bien por encima de su tamaño base y se asienta
+        // un poco más grande que antes de ser encontrada (efecto rebote via
+        // cubic-bezier con overshoot definido en el CSS de .threat-dot / .threat-dot-glow).
+        const poppedR = p.baseR * 1.35;
+        p.dot.setAttribute('r', poppedR.toFixed(2));
+        p.glow.setAttribute('r', (poppedR + 1.1).toFixed(2));
+
+        refreshFoundStat();
+    }
+
+    function startFade(p) {
+        p.state = 'fading';
+        p.fadeStartedAt = performance.now();
+        p.line.classList.add('fading');
+        p.dot.classList.add('fading');
+        p.glow.classList.add('fading');
+        if (p.foundAt) refreshFoundStat();
+    }
+
+    function removePoint(p) {
+        p.line.remove();
+        p.dot.remove();
+        p.glow.remove();
+    }
+
+    function refreshFoundStat() {
+        const activeFound = points.filter(p => p.state === 'found').length;
+        statFoundEl.textContent = String(activeFound);
+    }
+
+    for (let i = 0; i < MIN_POINTS; i++) spawnThreat();
+    spawnAmbientDots();
+
+    function tick(now) {
+        const totalAngle = totalAngleAt(now);
+        sweepEl.style.transform = `rotate(${totalAngle}deg)`;
+
+        const lap = Math.floor(totalAngle / 360) + 1;
+        if (lap !== lastLapShown) {
+            lastLapShown = lap;
+            statLapEl.textContent = String(lap);
+        }
+
+        for (let i = points.length - 1; i >= 0; i--) {
+            const p = points[i];
+
+            if (p.state === 'pending') {
+                if (totalAngle >= p.targetAngle) {
+                    markFound(p);
+                }
+                // Un rojo nunca expira por su cuenta: se queda ahí hasta que
+                // el barrido literalmente pase sobre él (siempre lo alcanza,
+                // porque el barrido nunca deja de girar).
+            } else if (p.state === 'found') {
+                if (now - p.foundAt >= LIFETIME_MS) {
+                    startFade(p);
+                }
+            } else if (p.state === 'fading') {
+                if (now - p.fadeStartedAt >= FADE_MS) {
+                    removePoint(p);
+                    points.splice(i, 1);
+                    setTimeout(spawnThreat, REPLACEMENT_DELAY_MS * (0.7 + Math.random() * 0.6));
+                }
+            }
+        }
+
+        requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

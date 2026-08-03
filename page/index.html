@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CELATOR | Inteligencia Ofensiva & Neutralización de Phishing</title>
+    <link rel="stylesheet" href="css/tailwind.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <!-- Adobe Fonts (Typekit) — Ethnocentric + Poppins -->
+    <link rel="stylesheet" href="https://use.typekit.net/oyu8dvm.css">
+
+    <style>
+        /* ============================================================
+           FUENTES DE TÍTULO PERSONALIZADAS
+           "ethnocentric" y "poppins" llegan vía Adobe Fonts (Typekit,
+           link arriba) — no necesitan @font-face manual.
+           "Acumin Variable Concept" SÍ sigue siendo un placeholder local:
+           coloca el archivo en una carpeta /fonts/ junto a este HTML
+           (o pásame el link de Typekit de Acumin si también la tienes
+           ahí, y lo cambio igual que hice con Ethnocentric y Poppins).
+             /fonts/AcuminVariableConcept.woff2  (o .ttf/.otf)
+           Mientras no esté ese archivo, cae automáticamente en el
+           fallback (Poppins) sin romper el diseño.
+        ============================================================ */
+        @font-face {
+            font-family: 'Acumin Variable Concept';
+            src: url('fonts/AcuminVariableConcept.woff2') format('woff2-variations'),
+                 url('fonts/AcuminVariableConcept.woff2') format('woff2'),
+                 url('fonts/AcuminVariableConcept.ttf') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            background-color: #08080b;
+            overflow-x: hidden;
+            color: #ffffff;
+        }
+
+        /* --- FONDOS CON TEXTURA PROFUNDA --- */
+        .page-background {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .bg-dots {
+            position: absolute;
+            inset: 0;
+            opacity: 0.5;
+            background-image: radial-gradient(rgba(231, 0, 0, 0.18) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .bg-circuit-texture {
+            position: absolute;
+            inset: 0;
+            opacity: 0.07;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath d='M10 0L20 10L30 0M40 0L50 10L60 0M0 10L10 20L0 30M10 20L20 30L30 20M70 10L80 20L70 30M0 40L10 50L0 60M10 50L20 60L30 50M40 40L50 50L60 40M70 40L80 50L70 60M0 70L10 80L0 70M10 80L20 70L30 80M40 80L50 70L60 80M70 80L80 70L70 80' stroke='%2322d3ee' stroke-width='1' fill='none' fill-rule='evenodd' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-size: 100px 100px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+        }
+
+        .bg-gradient-top {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at top, rgba(231, 0, 0, 0.16) 0%, transparent 65%);
+        }
+
+        .bg-gradient-bottom {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at bottom, rgba(34, 211, 238, 0.08) 0%, transparent 60%);
+        }
+
+        /* --- LOGO CON GLOW --- */
+        .nav-logo-icon {
+            height: 44px;
+            width: auto;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .nav-logo-icon img {
+            height: 100%;
+            object-fit: contain;
+            filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(251, 251, 251, 0.8)) drop-shadow(0 0 15px rgba(176, 176, 176, 0.4));
+            transition: filter 0.3s ease;
+        }
+
+        .nav-logo-icon:hover img {
+            filter: brightness(0) invert(1) drop-shadow(0 0 12px rgba(251, 251, 251, 0.8)) drop-shadow(0 0 20px rgba(176, 176, 176, 0.4)) saturate(1.2);
+        }
+
+        .nav-logo-text {
+            font-family: 'ethnocentric', 'Chakra Petch', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #ffffff;
+            text-transform: uppercase;
+            /* text-shadow: 0 0 10px rgba(231, 0, 0, 0.7), 0 0 15px rgba(231, 0, 0, 0.4); */
+            margin-left: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-logo-text::after {
+            content: "®";
+            font-size: 0.6em;
+            color: rgba(34, 211, 238, 0.8);
+            margin-left: 2px;
+            transform: translateY(-5px);
+        }
+
+        /* --- TARJETAS CON GLOW --- */
+        .glow-card {
+            background: rgba(16, 16, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glow-card:hover {
+            border-color: rgba(231, 0, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(231, 0, 0, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .glow-card-cyan:hover {
+            border-color: rgba(34, 211, 238, 0.3);
+            box-shadow: 0 10px 40px rgba(34, 211, 238, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .text-glow-red {
+            text-shadow: 0 0 30px rgba(231, 0, 0, 0.6), 0 0 10px rgba(231, 0, 0, 0.3);
+        }
+
+        .text-glow-cyan {
+            text-shadow: 0 0 25px rgba(34, 211, 238, 0.55), 0 0 10px rgba(34, 211, 238, 0.3);
+        }
+
+        /* --- REVELACIÓN AL HACER SCROLL --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
+        @keyframes soft-pulse {
+            0%, 100% { opacity: 0.5; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+        .animate-soft-pulse { animation: soft-pulse 4s infinite ease-in-out; }
+
+        /* ============================================================
+           RADAR DE AMENAZAS — elemento distintivo de la sección Hero
+           Visualiza el escaneo predictivo: puntos rojos (amenaza detectada)
+           conectados al núcleo por una línea. En el instante en que el haz
+           los "encuentra", la línea y el punto pasan de rojo a cian —
+           representando la neutralización inmediata (no hay espera).
+           La versión de escritorio sangra fuera de pantalla, igual que el
+           emblema en las guías de marca.
+        ============================================================ */
+        .radar-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
+        }
+
+        .radar-wrap.radar-mega {
+            width: clamp(280px, 78vw, 420px);
+            opacity: 0.9;
+        }
+
+        .hero-radar-outer {
+            margin-top: 4rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        @media (min-width: 1024px) {
+            .hero-radar-outer {
+                position: absolute;
+                inset: 0;
+                margin-top: 0;
+                display: block;
+                pointer-events: none;
+                z-index: 0;
+            }
+            .hero-radar-outer .radar-wrap.radar-mega {
+                position: absolute;
+                top: 40%;
+                right: -4%;
+                transform: translateY(-50%);
+                width: clamp(520px, 60vw, 850px);
+                opacity: 1;
+                mask-image: linear-gradient(to right, transparent 0%, black 38%);
+                -webkit-mask-image: linear-gradient(to right, transparent 0%, black 38%);
+            }
+        }
+
+        /* ============================================================
+           RADAR DE AMENAZAS — motor dinámico
+           Todo el contenido geométrico (anillos, cruz, núcleo, puntos
+           ambientales y amenazas) vive en un SVG con viewBox 0 0 100 100.
+           El barrido es un div aparte con conic-gradient, rotado cuadro a
+           cuadro por JS (ver el segundo <script> al final del documento)
+           para poder sincronizar el instante exacto del "encuentro".
+        ============================================================ */
+        .radar-wrap .ring { fill: none; stroke: rgba(34, 211, 238, 0.16); stroke-width: 0.4; }
+        .radar-wrap .ring.inner { stroke: rgba(34, 211, 238, 0.28); }
+        .radar-wrap .crosshair { stroke: rgba(255, 255, 255, 0.06); stroke-width: 0.3; }
+
+        /* Núcleo: titila siempre, sin importar lo que pase con las amenazas */
+        .radar-wrap .core {
+            fill: #22d3ee;
+            filter: drop-shadow(0 0 5px #22d3ee) drop-shadow(0 0 10px rgba(34, 211, 238, 0.6));
+            animation: core-blink 2.2s ease-in-out infinite;
+        }
+        @keyframes core-blink {
+            0%, 100% { opacity: 0.55; r: 1.9px; }
+            50%      { opacity: 1;    r: 2.4px; }
+        }
+
+        .radar-sweep-beam {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            /* Cola DETRÁS del filo, no adelante: el brillo vive justo antes
+               del cierre del círculo (100%), así al rotar en sentido horario
+               la estela queda a la zaga del punto más brillante. */
+            background: conic-gradient(from 0deg, transparent 0%, transparent 74%, rgba(34, 211, 238, 0.45) 100%);
+            mix-blend-mode: screen;
+            will-change: transform;
+        }
+
+        /* Puntos ambientales: textura de fondo (otros archivos/páginas
+           monitoreadas), estáticos, sin relación con la lógica de barrido */
+        .radar-wrap .ambient-dot {
+            fill: rgba(228, 228, 230, 0.35);
+            animation: ambient-flicker linear infinite;
+        }
+        @keyframes ambient-flicker {
+            0%, 100% { opacity: 0.15; }
+            50%      { opacity: 0.55; }
+        }
+
+        /* Amenazas reales: rojo -> cian al ser encontradas por el barrido,
+           cada una con su propio ciclo de vida (entra, espera, se
+           neutraliza, se desvanece, es reemplazada) */
+        .radar-wrap .threat-line {
+            stroke: #e70000;
+            stroke-width: 0.4;
+            opacity: 0.75;
+            transition: stroke 0.35s ease, opacity 0.5s ease;
+            vector-effect: non-scaling-stroke;
+        }
+        .radar-wrap .threat-line.found { stroke: #22d3ee; opacity: 0.9; }
+        .radar-wrap .threat-line.fading,
+        .radar-wrap .threat-line.entering { opacity: 0; }
+
+        .radar-wrap .threat-dot {
+            fill: #e70000;
+            opacity: 1;
+            transition: fill 0.35s ease, r 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+        }
+        .radar-wrap .threat-dot.found { fill: #22d3ee; }
+        .radar-wrap .threat-dot.fading,
+        .radar-wrap .threat-dot.entering { opacity: 0; }
+
+        .radar-wrap .threat-dot-glow {
+            fill: none;
+            opacity: 1;
+            transition: stroke 0.35s ease, r 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+        }
+        .radar-wrap .threat-dot-glow.pending { stroke: #e70000; filter: drop-shadow(0 0 3px #e70000); }
+        .radar-wrap .threat-dot-glow.found { stroke: #22d3ee; filter: drop-shadow(0 0 5px #22d3ee); }
+        .radar-wrap .threat-dot-glow.fading,
+        .radar-wrap .threat-dot-glow.entering { opacity: 0; }
+    </style>
+</head>
+<body class="selection:bg-tti-red selection:text-white font-sans">
+
+    <div class="page-background">
+        <div class="bg-dots"></div>
+        <div class="bg-circuit-texture"></div>
+        <div class="bg-gradient-top"></div>
+        <div class="bg-gradient-bottom"></div>
+    </div>
+
+    <nav class="sticky top-0 bg-tti-dark/70 backdrop-blur-2xl z-50 border-b border-white/5 px-6 md:px-12 py-3.5 flex justify-between items-center transition-all">
+        <div class="flex items-center group cursor-pointer">
+            <div class="nav-logo-icon">
+                <img src="img/logo.png" alt="Celator Logo Emblema">
+            </div>
+            <span class="nav-logo-text">CELATOR</span>
+        </div>
+
+        <div class="hidden md:flex space-x-10 text-sm font-semibold tracking-wide text-tti-light">
+            <a href="#mision" class="hover:text-white transition-colors duration-300">Misión</a>
+            <a href="#operaciones" class="hover:text-white transition-colors duration-300">Operaciones</a>
+            <a href="#arsenal" class="hover:text-white transition-colors duration-300">Arsenal</a>
+            <a href="#equipo" class="hover:text-white transition-colors duration-300">Equipo</a>
+        </div>
+
+        <a href="#registro" class="px-6 py-2.5 bg-white text-tti-dark font-bold text-sm rounded-full hover:bg-tti-red hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.08)] hover:shadow-[0_0_20px_rgba(231,0,0,0.3)] hover:-translate-y-0.5">
+            Acceso Beta
+        </a>
+    </nav>
+
+    <header id="mision" class="relative z-10 pt-24 pb-24 lg:pb-40 reveal active">
+
+        <div class="relative z-20 max-w-7xl mx-auto px-6">
+            <div class="max-w-2xl">
+                <div class="inline-flex items-center gap-2.5 px-5 py-2 border border-white/10 bg-white/5 rounded-full text-[10px] font-mono uppercase tracking-[0.25em] text-tti-light mb-8 shadow-inner shadow-white/5">
+                    <span class="w-2 h-2 rounded-full bg-tti-cyan animate-soft-pulse"></span>
+                    Totumo Threat Intelligence
+                </div>
+
+                <h1 class="font-display text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white uppercase leading-[1.05] mb-8">
+                    Expertos en <br>
+                    <span class="text-tti-red text-glow-red">Ciberseguridad</span><br> Defensiva.
+                </h1>
+
+                <p class="text-lg text-tti-light/80 max-w-xl font-medium leading-relaxed">
+                    Diseñamos, desarrollamos y operamos soluciones de inteligencia de amenazas impulsadas por IA. Rastrear y alertar no es suficiente; <span class="text-white font-bold">neutralizamos activamente</span> infraestructuras maliciosas antes de que afecten tu marca.
+                </p>
+
+                <div class="mt-10 flex flex-col sm:flex-row gap-4">
+                    <a href="#operaciones" class="px-8 py-4 bg-tti-red text-white font-bold tracking-wide rounded-xl hover:bg-tti-redDark transition-all shadow-[0_0_20px_rgba(231,0,0,0.15)] hover:shadow-[0_0_30px_rgba(231,0,0,0.35)] flex items-center justify-center gap-2.5 hover:-translate-y-1 transform duration-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Conocer la Plataforma
+                    </a>
+                    <a href="#registro" class="px-8 py-4 border border-tti-cyan/30 text-tti-cyan font-bold tracking-wide rounded-xl hover:bg-tti-cyan/10 hover:border-tti-cyan/60 transition-all flex items-center justify-center gap-2.5 duration-300">
+                        Quiero acceso prioritario
+                    </a>
+                </div>
+
+                <!-- <div class="flex gap-10 mt-14 font-mono">
+                    <div>
+                        <p id="counter-domains" class="text-2xl font-bold text-white tracking-tight">12,847</p>
+                        <p class="text-[9px] uppercase tracking-widest text-tti-light/50">Dominios monitoreados</p>
+                    </div>
+                    <div class="w-px bg-white/10"></div>
+                    <div>
+                        <p class="text-2xl font-bold text-tti-cyan tracking-tight text-glow-cyan">4.2s</p>
+                        <p class="text-[9px] uppercase tracking-widest text-tti-light/50">Neutralización media</p>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+
+        <!-- Radar gigante: en mobile es un visual contenido debajo del texto;
+             en desktop se posiciona absoluto y sangra fuera del borde derecho
+             de la pantalla, igual que el emblema en las guías de marca. -->
+        <div class="hero-radar-outer reveal delay-200">
+            <div class="radar-wrap radar-mega">
+                <svg id="radarSvg" viewBox="0 0 100 100" style="position:absolute; inset:0; width:100%; height:100%; overflow:visible;">
+                    <circle class="ring" cx="50" cy="50" r="48"></circle>
+                    <circle class="ring" cx="50" cy="50" r="36"></circle>
+                    <circle class="ring" cx="50" cy="50" r="24"></circle>
+                    <circle class="ring inner" cx="50" cy="50" r="12"></circle>
+                    <line class="crosshair" x1="50" y1="2" x2="50" y2="98"></line>
+                    <line class="crosshair" x1="2" y1="50" x2="98" y2="50"></line>
+                    <g id="radarAmbientGroup"></g>
+                    <g id="radarLinesGroup"></g>
+                    <g id="radarDotsGroup"></g>
+                    <circle class="core" cx="50" cy="50" r="2.2"></circle>
+                </svg>
+                <div class="radar-sweep-beam" id="radarSweepBeam"></div>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- <p class="relative z-10 text-center text-sm md:text-base text-tti-light/60 max-w-2xl mx-auto px-6 pb-24 italic">
+        "Donde termina el monitoreo tradicional, <span class="text-white not-italic font-bold">comienza nuestra ejecución.</span>"
+    </p> -->
+
+    <section id="operaciones" class="relative z-10 py-28 bg-gradient-to-b from-transparent to-[#0c0c10] border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+
+            <div class="reveal">
+                <span class="text-tti-red font-bold text-xs uppercase tracking-[0.2em]">Ejecución en Tiempo Real</span>
+                <h2 class="font-heading text-3xl md:text-5xl font-bold text-white uppercase tracking-tight mt-3 mb-10">
+                    Operaciones de <br>Neutralización Activa
+                </h2>
+
+                <div class="space-y-8">
+                    <div class="flex gap-5 items-start">
+                        <div class="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-tti-cyan/10 border border-tti-cyan/30 flex items-center justify-center text-tti-cyan font-mono text-xs font-bold shadow-md shadow-tti-cyan/10">01</div>
+                        <div>
+                            <h4 class="font-subheading text-white font-bold text-lg mb-2">Escaneo Homográfico</h4>
+                            <p class="text-sm text-tti-light/70 leading-relaxed">Nuestra arquitectura identifica variantes de dominio visualmente idénticas (typosquatting) que intentan suplantar la identidad de tu empresa.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-5 items-start">
+                        <div class="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-tti-red/10 border border-tti-red/30 flex items-center justify-center text-tti-red font-mono text-xs font-bold shadow-md shadow-tti-red/10">02</div>
+                        <div>
+                            <h4 class="font-subheading text-white font-bold text-lg mb-2">Contramedidas Directas</h4>
+                            <p class="text-sm text-tti-light/70 leading-relaxed">Ejecutamos protocolos automatizados para derribar y aislar sitios web maliciosos antes de que el primer cliente sea vulnerado.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-5 items-start">
+                        <div class="mt-1 flex-shrink-0 w-8 h-8 rounded-full bg-tti-cyan/10 border border-tti-cyan/30 flex items-center justify-center text-tti-cyan font-mono text-xs font-bold shadow-md shadow-tti-cyan/10">03</div>
+                        <div>
+                            <h4 class="font-subheading text-white font-bold text-lg mb-2">Auditoría Automática</h4>
+                            <p class="text-sm text-tti-light/70 leading-relaxed">Generación de reportes de riesgo con justificación basada en IA, diseñados para sustentar procesos legales inmediatos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal delay-200">
+                <div class="glow-card rounded-2xl p-6.5 group relative">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-5 relative z-10">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 bg-white/5 border border-white/10 group-hover:border-tti-red/20 rounded-lg flex items-center justify-center text-white transition">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-tti-light/50 uppercase tracking-widest font-bold">Incidente Detectado</p>
+                                <p class="text-xs font-mono text-white">ID: 0012345</p>
+                            </div>
+                        </div>
+                        <span class="bg-tti-red/20 border border-tti-red/30 text-tti-red text-[10px] font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-full animate-pulse shadow-md shadow-tti-red/10">Riesgo Alto</span>
+                    </div>
+
+                    <div class="space-y-3.5 font-mono text-xs relative z-10 leading-relaxed">
+                        <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex flex-col sm:flex-row justify-between sm:items-center gap-2 transition hover:border-white/10">
+                            <span class="text-tti-light/50 uppercase">Dominio Objetivo:</span>
+                            <span class="text-white font-bold">tuempresa.com</span>
+                        </div>
+                        <div class="bg-tti-red/10 p-4 rounded-xl border border-tti-red/20 flex flex-col sm:flex-row justify-between sm:items-center gap-2 transition hover:border-tti-red/30">
+                            <span class="text-tti-red uppercase font-bold text-glow-red">Amenaza Typosquatting:</span>
+                            <span class="text-tti-red font-bold text-glow-red">tvemprcsa.com</span>
+                        </div>
+                        <div class="bg-tti-cyan/5 p-4 rounded-xl border border-tti-cyan/20 flex flex-col sm:flex-row justify-between sm:items-center gap-2 transition hover:border-tti-cyan/30">
+                            <span class="text-tti-cyan uppercase font-bold">Estado:</span>
+                            <span class="text-tti-cyan font-bold">Neutralizado</span>
+                        </div>
+                        <div class="bg-black/30 p-5 rounded-xl border border-white/5 transition hover:border-white/10">
+                            <p class="text-white font-bold uppercase mb-2.5 text-[10px] tracking-wider font-sans">Resumen del Motor de IA:</p>
+                            <p class="text-tti-light/60 font-sans text-sm leading-relaxed max-w-xl italic">
+                                Estructura DOM&nbsp;<span class="text-white not-italic font-bold"> idéntica en un 94%.</span> Formulario interceptado redirige credenciales de autenticación a IP no autorizada en Europa del Este. ASN de origen listado en bases de datos de reputación maliciosa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="arsenal" class="relative z-10 py-28 max-w-7xl mx-auto px-6">
+        <div class="text-center mb-20 reveal">
+            <span class="text-tti-cyan font-bold text-xs uppercase tracking-[0.2em]">Suite Tecnológica</span>
+            <h2 class="font-heading text-3xl md:text-5xl font-bold text-white uppercase tracking-tight mt-3">El Arsenal de Celator</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+            <div class="glow-card glow-card-cyan p-9 rounded-2xl flex flex-col justify-between group reveal">
+                <div>
+                    <div class="w-14 h-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center mb-6 text-white group-hover:text-tti-cyan group-hover:border-tti-cyan/30 transition-all shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <h3 class="font-subheading text-2xl font-bold mb-3.5 text-white tracking-tight">Algoritmos de Homoglifos</h3>
+                    <p class="text-sm text-tti-light/60 leading-relaxed">
+                        Desarrollado para generar e identificar miles de variantes tipográficas que buscan suplantar infraestructuras legítimas antes de ser indexadas.
+                    </p>
+                </div>
+            </div>
+
+            <div class="glow-card glow-card-cyan p-9 rounded-2xl flex flex-col justify-between group reveal delay-100">
+                <div>
+                    <div class="w-14 h-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center mb-6 text-white group-hover:text-tti-cyan group-hover:border-tti-cyan/30 transition-all shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="font-subheading text-2xl font-bold mb-3.5 text-white tracking-tight">Network Stress Test</h3>
+                    <p class="text-sm text-tti-light/60 leading-relaxed">
+                        Simulación agresiva de cargas masivas de forma controlada. Descubrimos cuellos de botella en firewalls antes de que atacantes reales lo hagan.
+                    </p>
+                </div>
+            </div>
+
+            <div class="glow-card glow-card-cyan p-9 rounded-2xl flex flex-col justify-between group reveal delay-200">
+                <div>
+                    <div class="w-14 h-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center mb-6 text-white group-hover:text-tti-cyan group-hover:border-tti-cyan/30 transition-all shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <h3 class="font-subheading text-2xl font-bold mb-3.5 text-white tracking-tight">Auditoría IA Automatizada</h3>
+                    <p class="text-sm text-tti-light/60 leading-relaxed">
+                        Perfilado forense profundo. Recopila capturas de pantalla, evalúa el nivel de riesgo y genera informes detallados con indicadores de compromiso.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="relative z-10 py-28 bg-[#0c0c10] border-t border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+
+            <div class="reveal">
+                <span class="text-tti-cyan font-bold text-xs uppercase tracking-[0.2em]">Forense Integrado</span>
+                <h2 class="font-heading text-3xl md:text-5xl font-bold text-white uppercase mt-2.5 leading-tight tracking-tight">Auditorías Técnicas <br><span class="text-tti-red text-glow-red">En Segundos</span></h2>
+                <p class="text-tti-light/70 mt-6 leading-relaxed text-base">
+                    Nuestro motor genera automáticamente un reporte forense completo para cada amenaza identificada, ahorrando horas de análisis manual y entregando evidencia lista para accionar.
+                </p>
+
+                <ul class="mt-10 space-y-4.5">
+                    <li class="flex items-center gap-3.5 text-sm text-tti-light/80 bg-black/10 px-4 py-2 rounded-lg border border-white/5 inline-flex">
+                        <span class="w-1.5 h-1.5 bg-tti-cyan rounded-full shadow-lg shadow-tti-cyan"></span>
+                        <strong class="text-white font-bold">Captura de Evidencia:</strong> Screenshots automáticos de la amenaza.
+                    </li>
+                    <li class="flex items-center gap-3.5 text-sm text-tti-light/80 bg-black/10 px-4 py-2 rounded-lg border border-white/5 inline-flex">
+                        <span class="w-1.5 h-1.5 bg-tti-cyan rounded-full shadow-lg shadow-tti-cyan"></span>
+                        <strong class="text-white font-bold">Justificación Técnica:</strong> Análisis de similitud visual y typosquatting.
+                    </li>
+                    <li class="flex items-center gap-3.5 text-sm text-tti-light/80 bg-black/10 px-4 py-2 rounded-lg border border-white/5 inline-flex">
+                        <span class="w-1.5 h-1.5 bg-tti-cyan rounded-full shadow-lg shadow-tti-cyan"></span>
+                        <strong class="text-white font-bold">Trazabilidad:</strong> Georeferenciación y ASN del servidor atacante.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="glow-card rounded-2xl p-6.5 reveal delay-200 group relative">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-5 relative z-10">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-9 h-9 bg-white/5 border border-white/10 group-hover:border-tti-red/20 rounded-lg flex items-center justify-center text-white transition">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-tti-light/50 uppercase tracking-widest font-bold">Reporte Forense</p>
+                            <p class="text-xs font-mono text-white">CASE: CEL-8492-AX.pdf</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono text-tti-cyan uppercase tracking-widest bg-tti-cyan/10 border border-tti-cyan/20 px-3 py-1 rounded-full">Generado en 2.1s</span>
+                </div>
+
+                <div class="space-y-3.5 font-mono text-xs relative z-10 leading-relaxed">
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex justify-between items-center">
+                        <span class="text-tti-light/50 uppercase">IP de Origen:</span>
+                        <span class="text-white font-bold">185.220.1.24</span>
+                    </div>
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex justify-between items-center">
+                        <span class="text-tti-light/50 uppercase">Geolocalización:</span>
+                        <span class="text-white font-bold">Bucarest, RO</span>
+                    </div>
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex justify-between items-center">
+                        <span class="text-tti-light/50 uppercase">ASN Reputación:</span>
+                        <span class="text-tti-red font-bold">Maliciosa</span>
+                    </div>
+                    <div class="bg-tti-cyan/5 p-4 rounded-xl border border-tti-cyan/20 flex justify-between items-center">
+                        <span class="text-tti-cyan uppercase font-bold">Nivel de Similitud Visual:</span>
+                        <span class="text-tti-cyan font-bold">94%</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="equipo" class="relative z-10 py-28 max-w-7xl mx-auto px-6 border-b border-white/5 bg-[#08080a]">
+        <div class="text-center mb-16 reveal">
+            <span class="text-tti-red font-bold text-xs uppercase tracking-[0.2em]">Talento Fundador</span>
+            <h2 class="font-heading text-3xl md:text-4xl font-bold text-white uppercase tracking-tight mt-3 mb-4">Mentes detrás de Celator</h2>
+            <p class="text-base text-tti-light/70 max-w-xl mx-auto leading-relaxed">Un bloque multidisciplinario dedicado a redefinir la ciberseguridad defensiva activa.</p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6.5">
+
+            <div class="glow-card glow-card-cyan rounded-2xl overflow-hidden group reveal">
+                <div class="relative aspect-square overflow-hidden bg-black/50 border-b border-white/5">
+                    <img src="img/gustavo.png" alt="Gustavo Ampudia" class="w-full h-full object-cover filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition duration-500 group-hover:scale-105">
+                </div>
+                <div class="p-7">
+                    <h3 class="font-subheading font-bold text-lg text-white">Gustavo Ampudia</h3>
+                    <p class="text-tti-cyan text-[10px] font-bold uppercase tracking-widest mt-1.5 mb-4 font-mono">Audiovisual & Frontend</p>
+                    <p class="text-xs text-tti-light/70 leading-relaxed italic">Experto en UX/UI, producción audiovisual y diseño de interfaces tecnológicas avanzadas.</p>
+                </div>
+            </div>
+
+            <div class="glow-card glow-card-cyan rounded-2xl overflow-hidden group reveal delay-100">
+                <div class="relative aspect-square overflow-hidden bg-black/50 border-b border-white/5">
+                    <img src="img/nicolas.png" alt="Nicolas Cardenas" class="w-full h-full object-cover filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition duration-500 group-hover:scale-105">
+                </div>
+                <div class="p-7">
+                    <h3 class="font-subheading font-bold text-lg text-white">Nicolas Cardenas</h3>
+                    <p class="text-tti-cyan text-[10px] font-bold uppercase tracking-widest mt-1.5 mb-4 font-mono">Especialista SOC & Azure</p>
+                    <p class="text-xs text-tti-light/70 leading-relaxed italic">Líder en monitoreo defensivo, respuesta a incidentes críticos y arquitectura Cloud corporativa.</p>
+                </div>
+            </div>
+
+            <div class="glow-card glow-card-cyan rounded-2xl overflow-hidden group reveal delay-200">
+                <div class="relative aspect-square overflow-hidden bg-black/50 border-b border-white/5">
+                    <img src="img/jean.png" alt="Jean Reveiz" class="w-full h-full object-cover filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition duration-500 group-hover:scale-105">
+                </div>
+                <div class="p-7">
+                    <h3 class="font-subheading font-bold text-lg text-white">Jean Pierre Reveiz</h3>
+                    <p class="text-tti-cyan text-[10px] font-bold uppercase tracking-widest mt-1.5 mb-4 font-mono">Pentester & Perito</p>
+                    <p class="text-xs text-tti-light/70 leading-relaxed italic">+10 años en caza de vulnerabilidades críticas, auditorías forenses informáticas y desarrollo de algoritmos propietarios.</p>
+                </div>
+            </div>
+
+            <div class="glow-card glow-card-cyan rounded-2xl overflow-hidden group reveal delay-300">
+                <div class="relative aspect-square overflow-hidden bg-black/50 border-b border-white/5">
+                    <img src="img/samuel.png" alt="Samuel Gil" class="w-full h-full object-cover filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition duration-500 group-hover:scale-105">
+                </div>
+                <div class="p-7">
+                    <h3 class="font-subheading font-bold text-lg text-white">Samuel Gil</h3>
+                    <p class="text-tti-cyan text-[10px] font-bold uppercase tracking-widest mt-1.5 mb-4 font-mono">Comercial & Estrategia</p>
+                    <p class="text-xs text-tti-light/70 leading-relaxed italic">Socio estratégico clave, especialista en adquisición corporativa, retención y expansión de mercado global.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer id="registro" class="relative z-10 py-24 bg-[#08080b] text-center overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none opacity-40" style="background: radial-gradient(circle at 50% 0%, rgba(231,0,0,0.1), transparent 60%);"></div>
+        <div class="max-w-2xl mx-auto px-6 reveal relative z-10">
+            <span class="text-tti-cyan font-bold text-xs uppercase tracking-[0.2em]">Sé parte de la resistencia digital</span>
+            <h2 class="font-heading text-3xl font-bold text-white uppercase tracking-tight mt-3 mb-4 flex items-center justify-center gap-3">
+                <span class="text-glow-red">Únete a la Beta</span>
+            </h2>
+            <p class="text-sm text-tti-light/70 mb-10 max-w-md mx-auto leading-relaxed italic">
+                Mantente informado sobre nuevas capacidades de inteligencia ofensiva, reportes tácticos y despliegues globales de la plataforma.
+            </p>
+
+            <form action="https://formsubmit.co/totumotint@gmail.com" method="POST" class="flex flex-col sm:flex-row gap-3.5 max-w-md mx-auto">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_subject" value="¡Nuevo registro en Celator Beta!">
+
+                <input type="email" name="email" placeholder="Correo Corporativo" required
+                    class="flex-1 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-tti-cyan focus:ring-1 focus:ring-tti-cyan/20 transition placeholder-tti-light/30 shadow-inner">
+
+                <button type="submit" class="bg-tti-red hover:bg-tti-redDark text-white font-bold px-8 py-3 rounded-xl transition duration-300 shadow-[0_0_15px_rgba(231,0,0,0.3)] hover:shadow-[0_0_25px_rgba(231,0,0,0.45),0_0_35px_rgba(34,211,238,0.15)] hover:-translate-y-0.5">
+                    Notificarme
+                </button>
+            </form>
+
+            <p class="mt-16 text-[10px] text-tti-light/40 tracking-[0.25em] font-mono uppercase">© 2026 Totumo Threat Intelligence. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px 0px -60px 0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal').forEach((el) => {
+                observer.observe(el);
+            });
+
+            // Contador sutil de dominios monitoreados
+            const counterEl = document.getElementById('counter-domains');
+            if (counterEl) {
+                let base = 12847;
+                setInterval(() => {
+                    base += Math.floor(Math.random() * 3);
+                    counterEl.textContent = base.toLocaleString('es-CO');
+                }, 3500);
+            }
+        });
+
+        // ============================================================
+        // RADAR DE AMENAZAS — motor dinámico
+        // Población de amenazas continua: un punto rojo nunca expira por
+        // su cuenta, solo cuando el barrido literalmente pasa por su
+        // ángulo. Al ser encontrado pasa a cian y vive medio giro más
+        // antes de desvanecerse y ser reemplazado. Todo lo que entra o
+        // sale lo hace con una transición de opacidad, nunca de golpe.
+        // ============================================================
+        (function () {
+            const sweepEl = document.getElementById('radarSweepBeam');
+            const linesGroup = document.getElementById('radarLinesGroup');
+            const dotsGroup = document.getElementById('radarDotsGroup');
+            const ambientGroup = document.getElementById('radarAmbientGroup');
+            if (!sweepEl || !linesGroup || !dotsGroup || !ambientGroup) return;
+
+            const ROTATION_MS = 4000;              // duración de una vuelta completa del barrido
+            const LIFETIME_MS = ROTATION_MS / 2;    // "tiempo predeterminado": medio giro
+            const REPLACEMENT_DELAY_MS = LIFETIME_MS / 2; // mitad del tiempo predeterminado
+            const FADE_MS = 500;                    // duración visual del desvanecido
+
+            const MIN_POINTS = 10;                  // población objetivo de amenazas activas
+            const MIN_RADIUS = 16;                  // % del radio, desde el centro
+            const MAX_RADIUS = 44;
+            const MIN_SIZE = 0.9;                   // radio base del punto (varía el tamaño)
+            const MAX_SIZE = 2.5;
+
+            const AMBIENT_COUNT = 55;               // punticos de fondo simulando datos/archivos
+
+            const svgNS = 'http://www.w3.org/2000/svg';
+            const startTime = performance.now();
+            let points = [];
+
+            function rand(min, max) { return Math.random() * (max - min) + min; }
+
+            // Convención "de reloj": 0deg = arriba (12), aumenta en sentido
+            // horario — igual que el conic-gradient del barrido y su
+            // transform: rotate().
+            function polarToXY(angleDeg, radiusPct) {
+                const rad = (angleDeg * Math.PI) / 180;
+                const dx = radiusPct * Math.sin(rad);
+                const dy = -radiusPct * Math.cos(rad);
+                return { x: 50 + dx, y: 50 + dy };
+            }
+
+            function totalAngleAt(now) {
+                return ((now - startTime) / ROTATION_MS) * 360;
+            }
+
+            // --- Puntos ambientales (decorativos, fijos, no interactúan con el barrido) ---
+            function spawnAmbientDots() {
+                for (let i = 0; i < AMBIENT_COUNT; i++) {
+                    const angle = rand(0, 360);
+                    const radius = Math.sqrt(rand(0, 1)) * 47; // distribución pareja en el disco
+                    const pos = polarToXY(angle, radius);
+                    const r = rand(0.18, 0.5);
+
+                    const dot = document.createElementNS(svgNS, 'circle');
+                    dot.setAttribute('class', 'ambient-dot');
+                    dot.setAttribute('cx', pos.x.toFixed(2));
+                    dot.setAttribute('cy', pos.y.toFixed(2));
+                    dot.setAttribute('r', r.toFixed(2));
+                    dot.style.animationDuration = rand(2.5, 6).toFixed(2) + 's';
+                    dot.style.animationDelay = '-' + rand(0, 6).toFixed(2) + 's';
+                    ambientGroup.appendChild(dot);
+                }
+            }
+
+            // --- Ciclo de vida de una amenaza real ---
+            function spawnThreat() {
+                const now = performance.now();
+                const angle = rand(0, 360);
+                const radius = rand(MIN_RADIUS, MAX_RADIUS);
+                const baseR = rand(MIN_SIZE, MAX_SIZE);
+                const pos = polarToXY(angle, radius);
+
+                const spawnTotalAngle = totalAngleAt(now);
+                let targetAngle = Math.floor(spawnTotalAngle / 360) * 360 + angle;
+                if (targetAngle < spawnTotalAngle) targetAngle += 360;
+
+                const line = document.createElementNS(svgNS, 'line');
+                line.setAttribute('class', 'threat-line entering');
+                line.setAttribute('x1', '50');
+                line.setAttribute('y1', '50');
+                line.setAttribute('x2', pos.x.toFixed(2));
+                line.setAttribute('y2', pos.y.toFixed(2));
+                linesGroup.appendChild(line);
+
+                const glow = document.createElementNS(svgNS, 'circle');
+                glow.setAttribute('class', 'threat-dot-glow pending entering');
+                glow.setAttribute('cx', pos.x.toFixed(2));
+                glow.setAttribute('cy', pos.y.toFixed(2));
+                glow.setAttribute('r', (baseR + 1).toFixed(2));
+                glow.setAttribute('stroke-width', '0.5');
+                dotsGroup.appendChild(glow);
+
+                const dot = document.createElementNS(svgNS, 'circle');
+                dot.setAttribute('class', 'threat-dot entering');
+                dot.setAttribute('cx', pos.x.toFixed(2));
+                dot.setAttribute('cy', pos.y.toFixed(2));
+                dot.setAttribute('r', baseR.toFixed(2));
+                dotsGroup.appendChild(dot);
+
+                // Doble rAF para asegurar que el navegador registre el estado
+                // inicial (opacity:0) antes de quitar la clase — si no, se
+                // salta la transición y aparece de golpe.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        line.classList.remove('entering');
+                        glow.classList.remove('entering');
+                        dot.classList.remove('entering');
+                    });
+                });
+
+                points.push({
+                    angle, baseR, targetAngle,
+                    state: 'pending',       // pending -> found -> fading -> (removed)
+                    spawnedAt: now,
+                    foundAt: null,
+                    fadeStartedAt: null,
+                    line, dot, glow
+                });
+            }
+
+            function markFound(p) {
+                p.state = 'found';
+                p.foundAt = performance.now();
+                p.line.classList.add('found');
+                p.dot.classList.add('found');
+                p.glow.classList.remove('pending');
+                p.glow.classList.add('found');
+
+                // Pop de tamaño: salta por encima de su tamaño base y se
+                // asienta un poco más grande que antes de ser encontrada
+                // (rebote via cubic-bezier con overshoot definido en el CSS).
+                const poppedR = p.baseR * 1.35;
+                p.dot.setAttribute('r', poppedR.toFixed(2));
+                p.glow.setAttribute('r', (poppedR + 1.1).toFixed(2));
+            }
+
+            function startFade(p) {
+                p.state = 'fading';
+                p.fadeStartedAt = performance.now();
+                p.line.classList.add('fading');
+                p.dot.classList.add('fading');
+                p.glow.classList.add('fading');
+            }
+
+            function removePoint(p) {
+                p.line.remove();
+                p.dot.remove();
+                p.glow.remove();
+            }
+
+            for (let i = 0; i < MIN_POINTS; i++) spawnThreat();
+            spawnAmbientDots();
+
+            function tick(now) {
+                const totalAngle = totalAngleAt(now);
+                sweepEl.style.transform = `rotate(${totalAngle}deg)`;
+
+                for (let i = points.length - 1; i >= 0; i--) {
+                    const p = points[i];
+
+                    if (p.state === 'pending') {
+                        if (totalAngle >= p.targetAngle) {
+                            markFound(p);
+                        }
+                        // Un rojo nunca expira por su cuenta: se queda ahí
+                        // hasta que el barrido literalmente pase sobre él
+                        // (siempre lo alcanza, porque nunca deja de girar).
+                    } else if (p.state === 'found') {
+                        if (now - p.foundAt >= LIFETIME_MS) {
+                            startFade(p);
+                        }
+                    } else if (p.state === 'fading') {
+                        if (now - p.fadeStartedAt >= FADE_MS) {
+                            removePoint(p);
+                            points.splice(i, 1);
+                            setTimeout(spawnThreat, REPLACEMENT_DELAY_MS * (0.7 + Math.random() * 0.6));
+                        }
+                    }
+                }
+
+                requestAnimationFrame(tick);
+            }
+
+            requestAnimationFrame(tick);
+        })();
+    </script>
+</body>
+</html>
